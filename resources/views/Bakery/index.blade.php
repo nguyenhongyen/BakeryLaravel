@@ -64,7 +64,7 @@
                             <div class="search-nav" id="search-nav">
                                 <form action="{{ route('search_product') }}" method="GET">
                                     <i class="fa fa-times icon-close" id="icon-close" aria-hidden="true"></i>
-                                    <input type="text" value="{{ old('tukhoa') }}" name="tukhoa"
+                                    <input type="text" value="{{ old('tukhoa') }}" name="search"
                                         placeholder="Tìm kiếm loại bánh ...">
                                     <i class="fa fa-paper-plane" aria-hidden="true"></i>
                                 </form>
@@ -128,11 +128,11 @@
                                                         </div>
                                                     @endif --}}
                                                     <div class="form-group">
-                                                        <input type="email" id="email" placeholder="Email" name="email">
-                                                        
+                                                        <input type="email" placeholder="Email" name="email">
+
                                                     </div>
                                                     <div class="form-group ">
-                                                        <input type="password" id="password" placeholder="Mật khẩu"
+                                                        <input type="password" placeholder="Mật khẩu"
                                                             name="password">
                                                     </div>
                                                     <a href="#">Quên mật khẩu?</a>
@@ -179,19 +179,19 @@
                                                             {{ session('status') }}
                                                         </div>
                                                     @endif
-                                                   
+
                                                     <div class="form-group">
-                                                        <input type="text" id="name" placeholder="Họ tên" name="name">
+                                                        <input type="text" placeholder="Họ tên" name="name">
                                                     </div>
                                                     <div class="form-group">
-                                                        <input type="email" id="email" placeholder="Email" name="email">
+                                                        <input type="email" placeholder="Email" name="email">
                                                     </div>
                                                     <div class="form-group ">
-                                                        <input type="password" id="password" placeholder="Mật khẩu"
+                                                        <input type="password"  placeholder="Mật khẩu"
                                                             name="password">
                                                     </div>
                                                     <div class="form-group ">
-                                                        <input type="password" id="re-password"
+                                                        <input type="password"
                                                             placeholder="Nhập lại mật khẩu" name="re-password">
                                                     </div>
                                                     <button type="submit" class="btn btn-signup" id="btn-signup">Đăng
@@ -353,20 +353,22 @@
         <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
                 integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
         </script>
+        
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"
                 integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous">
         </script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/alertify.min.js"></script>
+ 
         <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
                 crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/alertify.min.js"></script>
-
-        {{-- <script src="https://unpkg.com/sweetalert2@7.18.0/dist/sweetalert2.all.js"></script>
-        <script src="https://unpkg.com/sweetalert2@7.18.0/dist/sweetalert2.all.js"></script> --}}
-
-
+        {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.js"></script> --}}
+    
 
         @yield('js')
+      
         <script async src="{{ asset('asset/js/bakery/index.js') }}"></script>
+        
         <script>
             $('.search-ajax').keyup(function() {
 
@@ -402,7 +404,7 @@
             //     $.ajax({
             //         type: 'POST',
             //         url: "{{ route('post-login') }}",
-                
+
             //     }).done(function(respone){
             //          if (response) {
 

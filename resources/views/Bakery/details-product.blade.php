@@ -1,6 +1,7 @@
 @extends('bakery.index')
 @section('css')
     <link rel="stylesheet" href="{{ asset('asset/css/bakery/details-product.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.css">
     <style>
         .note-toolbar.card-header {
             display: none;
@@ -143,24 +144,31 @@
                 <div class="title-comment">Đánh giá & bình luận sản phẩm</div>
                 @if (Auth::check())
                     <div class="border-comment">
-                        <form>
+                        <form method="GET" action="{{ route('comment_product') }}" id="formRating">
+
                             <div class="rate-comment">
                                 Đánh giá sao
-                                <div class="rate-star">
+                                {{-- <div class="rate-star">
                                     <i class="fa fa-star" aria-hidden="true"></i>
                                     <i class="fa fa-star" aria-hidden="true"></i>
                                     <i class="fa fa-star" aria-hidden="true"></i>
                                     <i class="fa fa-star" aria-hidden="true"></i>
                                     <i class="fa fa-star" aria-hidden="true"></i>
+                                </div> --}}
+                                <div id="rateYo"></div>
+
+                                <div class="form-group">
+                                    <input type="hidden" class="form-control" name="rating_start" id="rating_start">
                                 </div>
+
                             </div>
-                        </form>
-                        <form method="GET">
-                            {{-- @csrf --}}
+
+                            {{-- <form method="GET"> --}}
                             <div class="form-group comment">
                                 <div class="form-group">
                                     <label for="comment-name">Nội dung bình luận</label>
-                                    <input type="hidden" value={{ $detail_product->id }} name="detail_product_id">
+                                    <input type="hidden" value={{ $detail_product->id }} name="product_id">
+                                    <input type="hidden" value={{ Auth::user()->id }} name="user_id">
                                     <textarea id="comment-content" name="content" rows="3"></textarea>
                                     <small id="notice-comment"></small>
                                 </div>
@@ -183,22 +191,22 @@
                             <img src="{{ asset('asset/img/Image/user.png') }}" width="70px" height="70px">
                         </div>
                         <div class="content-detail-comment">
-                            <div class="rate-star">
-                                <i class="fa fa-star" aria-hidden="true"></i>
-                                <i class="fa fa-star" aria-hidden="true"></i>
-                                <i class="fa fa-star" aria-hidden="true"></i>
-                                <i class="fa fa-star" aria-hidden="true"></i>
-                                <i class="fa fa-star" aria-hidden="true"></i>
-                            </div>
+
+                            <div id="rateYo1" class="rateYo1"></div>
 
                             <span>{{ $value->user->name }} <small
                                     class="text-muted">{{ $value->created_at }}</small></span>
 
                             <p class="name-member mb-1">{{ $value->content }}</p>
-                            <a href="#" onclick="DeleteComment('{{ $value->id }}')">Xóa</a>
+                            @if (Auth::check())
+                                @if (Auth::user()->id == $value->user_id)
+                                    <a href="#" onclick="DeleteComment('{{ $value->id }}')">Xóa</a>
+                                @endif
+                            @endif
                         </div>
                     </div>
                 @endforeach
+
                 <div id="content-comment" class="content-comment"></div>
                 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
                     aria-hidden="true">
@@ -237,13 +245,13 @@
                                                 </div>
                                             @endif
                                             <div class="form-group">
-                                                <input type="email" id="email" placeholder="Email" name="email">
+                                                <input type="email" placeholder="Email" name="email">
                                             </div>
                                             <div class="form-group ">
-                                                <input type="password" id="password" placeholder="Mật khẩu" name="password">
+                                                <input type="password" placeholder="Mật khẩu" name="password">
                                             </div>
                                             <a href="#">Quên mật khẩu?</a>
-                                            <button type="submit" class="btn btn-login" id="btn-login">ĐĂNG NHẬP</button>
+                                            <button type="submit" class="btn btn-login">ĐĂNG NHẬP</button>
                                             <div class="social-user">
                                                 <p class="heading-social text-center">Hoặc đăng nhập với</p>
                                                 <div class="social-list">
@@ -284,17 +292,16 @@
                                                 </div>
                                             @endif
                                             <div class="form-group">
-                                                <input type="text" id="name" placeholder="Họ tên" name="name">
+                                                <input type="text" placeholder="Họ tên" name="name">
                                             </div>
                                             <div class="form-group">
-                                                <input type="email" id="email" placeholder="Email" name="email">
+                                                <input type="email" placeholder="Email" name="email">
                                             </div>
                                             <div class="form-group ">
-                                                <input type="password" id="password" placeholder="Mật khẩu" name="password">
+                                                <input type="password" placeholder="Mật khẩu" name="password">
                                             </div>
                                             <div class="form-group ">
-                                                <input type="password" id="re-password" placeholder="Nhập lại mật khẩu"
-                                                    name="re-password">
+                                                <input type="password" placeholder="Nhập lại mật khẩu" name="re-password">
                                             </div>
                                             <button type="submit" class="btn btn-signup">Đăng ký</button>
                                         </form>
@@ -372,11 +379,12 @@
     <!-- end related products -->
 @endsection
 
+
 @section('js')
     <script src="{{ asset('asset/js/bakery/owl.carousel.min.js') }}"></script>
     <script src="{{ asset('asset/js/bakery/details-product.js') }}"> </script>
-
     <script src="{{ asset('asset/AdminLTE/plugins/summernote/summernote-bs4.min.js') }}"></script>
+
     <script>
         $('#summernote').summernote({
             callbacks: {
@@ -394,46 +402,38 @@
             }
         });
 
-        var _csrf = '{{ csrf_token() }}';
-        $('#btn-comment').click(function(ev) {
-            ev.preventDefault();
-            let content = $('#comment-content').val();
-            let _commentUrl = "{{ route('comment_ajax', $detail_product->id) }}";
+        var ratingAvg = "{{ $rating }}";
+        $(function() {
 
-            $.ajax({
-                url: _commentUrl,
-                type: "GET",
-                data: {
-                    content: content,
-                    _token: _csrf
-                },
-                success: function(res) {
-                    if (res) {
-                        $('#content-comment').html(res);
-                        setTimeout(() => {
-
-                            location.reload();
-                        }, 1000);
-                    }
-
-
-                }
+            $("#rateYo").rateYo({
+                rating: 4,
+                normalFill: "#A0A0A0",
+                ratedFill: "#f1c40f"
+            }).on("rateyo.set", function(e, data) {
+                $('#rating_start').val(data.rating);
             });
-        })
+
+            $(".rateYo1").rateYo({
+                rating: ratingAvg,
+                normalFill: "#A0A0A0",
+                ratedFill: "#f1c40f"
+            })
+
+        });
 
         function DeleteComment(id) {
             $.ajax({
                 url: `{{ asset('Bakery/San-Pham/delete-comment/${id}') }}`,
                 type: "GET",
-               
+
             }).done(function() {
 
             });
             alertify.success('Xóa bình luận thành công!');
-             setTimeout(() => {
+            setTimeout(() => {
 
-                        location.reload();
-                    }, 1000);
+                location.reload();
+            }, 1000);
         }
 
         function favoriteProduct(id) {
@@ -459,4 +459,5 @@
             });
         }
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.js"></script>
 @endsection

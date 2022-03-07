@@ -58,6 +58,7 @@
                                     <th>Tên thành viên</th>
                                     <th>Tên sản phẩm</th>
                                     <th>Nội dung bình luận</th>
+                                    <th>Số sao</th>
                                     <th>Kích hoạt</th>
                                     <th></th>
                                 </tr>
@@ -69,6 +70,7 @@
                                         <td>{{ $value->user->email }}</td>
                                         <td>{{ $value->product->name }}</td>
                                         <td>{{ $value->content }}</td>
+                                        <td>{{ $value->rating }}</td>
                                         <td>
                                             <form method="GET" action="{{ route('delete_comment',[$value->id]) }}">
                

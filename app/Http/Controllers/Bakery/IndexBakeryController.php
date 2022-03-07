@@ -75,14 +75,18 @@ class IndexBakeryController extends Controller
         $product_related = Product::orderBy('id', 'ASC')->get();
 
         $comment_user = Comment::where('product_id', $req->id)->get();
+      
+        $rating = Comment::where('product_id', $req->id)->avg('rating');
+       
 
+      
         $count_favorite = 0;
         if (Auth::check()) {
             $user_id = Auth::user()->id;
             $count_favorite = Favorite::where('user_id', $user_id)->get()->count();
         }
 
-        return view('Bakery.details-product', compact('detail_product', 'product', 'image_list', 'image', 'image2', 'images', 'product_related', 'comment_user', 'count_favorite'));
+        return view('Bakery.details-product', compact('detail_product', 'product', 'image_list', 'image', 'image2', 'images', 'product_related', 'comment_user', 'count_favorite', 'rating'));
     }
 
     public function blog()
@@ -134,7 +138,7 @@ class IndexBakeryController extends Controller
         }
         $data = Product::search()->get();
        
-        return view('Bakery.search-ajax', compact('data','count_favorite'));
+        return view('Bakery.search-ajax', compact('data', 'count_favorite'));
     }
 
     public function category_ajax($id, Request $req)
@@ -147,7 +151,7 @@ class IndexBakeryController extends Controller
 
         $product = Product::where('category_id', $id)->get();
 
-        return view('Bakery.search-category-ajax', compact('product','count_favorite'));
+        return view('Bakery.search-category-ajax', compact('product', 'count_favorite'));
     }
 
     public function select_ajax($id, Request $request)
@@ -165,12 +169,12 @@ class IndexBakeryController extends Controller
               $product = Product::orderBy('id', 'DESC')->get();
           }
 
-          $count_favorite = 0;
-          if (Auth::check()) {
-              $user_id = Auth::user()->id;
-              $count_favorite = Favorite::where('user_id', $user_id)->get()->count();
-          }
-        return view('Bakery.search-category-ajax', compact('product','count_favorite'));
+        $count_favorite = 0;
+        if (Auth::check()) {
+            $user_id = Auth::user()->id;
+            $count_favorite = Favorite::where('user_id', $user_id)->get()->count();
+        }
+        return view('Bakery.search-category-ajax', compact('product', 'count_favorite'));
     }
 
     public function price_ajax($id, Request $request)
@@ -187,12 +191,12 @@ class IndexBakeryController extends Controller
               $product = Product::where('price', '>', '100000')->get();
           }
 
-          $count_favorite = 0;
-          if (Auth::check()) {
-              $user_id = Auth::user()->id;
-              $count_favorite = Favorite::where('user_id', $user_id)->get()->count();
-          }
-        return view('Bakery.search-category-ajax', compact('product','count_favorite'));
+        $count_favorite = 0;
+        if (Auth::check()) {
+            $user_id = Auth::user()->id;
+            $count_favorite = Favorite::where('user_id', $user_id)->get()->count();
+        }
+        return view('Bakery.search-category-ajax', compact('product', 'count_favorite'));
     }
 
     public function search_product()
@@ -361,40 +365,45 @@ class IndexBakeryController extends Controller
         $check = $request->only(['email','password']);
 
         if (Auth::attempt($check)) {
-                Alert::success('Thông báo', 'Đăng nhập thành công!');
+            Alert::success('Thông báo', 'Đăng nhập thành công!');
             return redirect()->back()->with(['status' => 'Đăng nhập thành công']);
         } else {
-            
             Alert::error('Thông báo', 'Tên đăng nhập hoặc mật khẩu không chính xác!!!');
 
             return redirect()->back();
         }
     }
 
-    public function comment_ajax($product_id, Request $request)
+    public function comment_product(Request $request)
     {
-        $user_id =  Auth::user()->id;
-      
-        $comment = new Comment();
-        $comment->user_id = $user_id;
-        $comment->product_id = $product_id;
-        $comment ->content = $request->content;
-        $comment ->rep_id = 0;
-        $comment ->status = 1;
-          
-        $comment->save();
+        $request->validate([
+           'content'=>'required',
+           'rating_start'=>'required'
+       ], [
+            'content.required'=>"Nội dung bình luận không được để trống!",
+            'rating_start.required'=>"Vui lòng đánh giá sao!",
+            Alert::warning('Thông báo', 'Vui lòng đánh giá sao và bình luận!')
+       ]);
 
-        $comment_user = Comment::where('product_id', $product_id)->get();
-        $comment = Comment::orderBy('id', 'DESC')->where('product_id', $product_id)->first();
+            $comment = new Comment();
+            $comment->user_id = $request->user_id;
+            $comment->product_id = $request->product_id;
+            $comment ->content = $request->content;
+            $comment ->rep_id = 0;
+            $comment ->status = 1;
+            $comment->rating =$request->rating_start;
+          
+            $comment->save();
 
         $count_favorite = 0;
         if (Auth::check()) {
             $user_id = Auth::user()->id;
             $count_favorite = Favorite::where('user_id', $user_id)->get()->count();
         }
-        return view('Bakery.list_comment', compact('comment_user', 'comment','count_favorite'));
-    }
 
+        Alert::success('Thông báo', 'Bình luận thành công!');
+        return redirect()->back();
+    }
     public function delete_comment_ajax($id)
     {
         $comment= Comment::find($id)->delete();
@@ -405,7 +414,7 @@ class IndexBakeryController extends Controller
             $count_favorite = Favorite::where('user_id', $user_id)->get()->count();
         }
 
-        return view('Bakery.details-product', compact('comment','count_favorite'));
+        return view('Bakery.details-product', compact('comment', 'count_favorite'));
     }
 
     public function comment_blog($blog_id, Request $request)
@@ -430,7 +439,7 @@ class IndexBakeryController extends Controller
             $count_favorite = Favorite::where('user_id', $user_id)->get()->count();
         }
 
-        return view('Bakery.comment_blog', compact('comment_user', 'comment','count_favorite'));
+        return view('Bakery.comment_blog', compact('comment_user', 'comment', 'count_favorite'));
     }
 
     public function post_contact(Request $req)
@@ -476,7 +485,7 @@ class IndexBakeryController extends Controller
             $count_favorite = Favorite::where('user_id', $user_id)->get()->count();
         }
 
-        return view('Bakery.blog', compact('blog', 'key', 'count_favorite','count_favorite'));
+        return view('Bakery.blog', compact('blog', 'key', 'count_favorite', 'count_favorite'));
     }
 
     public function favorite($id, Request $request)
